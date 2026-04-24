@@ -60,6 +60,13 @@ const VideoCallApp = () => {
       api.addEventListener('videoConferenceLeft', () => {
         setInCall(false);
       });
+
+      // Cuando el moderador entra, activamos la sala de espera automáticamente
+      api.addEventListener('videoConferenceJoined', () => {
+        // Verificamos si somos moderadores (esto depende de cómo Jitsi te asigne)
+        // Por defecto en la versión gratuita, el primero en llegar es moderador
+        api.executeCommand('toggleLobby', true); 
+      });
     };
 
     // Verificamos si el script externo de Jitsi ya está en el DOM
