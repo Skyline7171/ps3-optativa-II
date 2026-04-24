@@ -5,6 +5,18 @@ const VideoCallApp = () => {
   const [inCall, setInCall] = useState(false);
   const jitsiContainerRef = useRef(null);
 
+  const [error, setError] = useState('');
+
+  const handleJoin = () => {
+    if (roomName.length < 5) {
+      setError('El ID de la sala debe tener al menos 5 caracteres.');
+      return;
+    }
+    
+    setError('');
+    setInCall(true);
+  };
+
   // Función para generar un ID de sala aleatorio y legible
   const handleCreateRoom = () => {
     const prefixes = ['ingenieria', 'clase', 'grupo', 'proyecto', 'reunion'];
@@ -44,6 +56,10 @@ const VideoCallApp = () => {
       }
 
       api = new window.JitsiMeetExternalAPI(domain, options);
+
+      api.addEventListener('videoConferenceLeft', () => {
+        setInCall(false);
+      });
     };
 
     // Verificamos si el script externo de Jitsi ya está en el DOM
@@ -75,7 +91,7 @@ const VideoCallApp = () => {
           </div>
           
           <div className="space-y-6">
-            {/* Input de Sala */}
+            {/* ... dentro del bloque del Lobby, debajo del input ... */}
             <div>
               <label className="text-xs uppercase tracking-widest text-slate-500 font-bold ml-1">ID de la Sala</label>
               <input 
@@ -83,8 +99,16 @@ const VideoCallApp = () => {
                 placeholder="Escribe el nombre de la sala..." 
                 className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono"
                 value={roomName}
-                onChange={(e) => setRoomName(e.target.value)}
+                onChange={(e) => {
+                  // Aplicamos la limpieza técnica inmediatamente
+                  const sanitizedValue = e.target.value
+                    .replace(/\s+/g, '-')
+                    .replace(/[^a-zA-Z0-9-_]/g, '');
+                  
+                  setRoomName(sanitizedValue);
+                }}
               />
+
             </div>
             
             {/* Botones de Acción */}
@@ -97,18 +121,46 @@ const VideoCallApp = () => {
                 Unirse a la llamada
               </button>
 
-              <div className="flex items-center gap-2 my-1">
-                <div className="flex-grow border-t border-slate-700"></div>
-                <span className="text-slate-600 text-xs font-bold uppercase">ó</span>
-                <div className="flex-grow border-t border-slate-700"></div>
-              </div>
-
               <button 
                 onClick={handleCreateRoom}
                 className="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-3 rounded-xl border border-slate-600 transition-all"
               >
                 Generar nombre de sala nueva
               </button>
+            </div>
+          </div>
+
+          {/* --- PANEL DE PROTOCOLO Y ESTADO --- */}
+          <div className="mt-6 space-y-3">
+            <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 shadow-inner">
+              {/* Encabezado del aviso */}
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-800">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">
+                  Protocolo de Conexión WebRTC
+                </span>
+              </div>
+
+              {/* Cuerpo del mensaje */}
+              <div className="space-y-3">
+                <div className="flex gap-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    <strong className="text-blue-400">Provisión Automática:</strong> Si el ID ingresado no corresponde a la de ninguna sala activa, el sistema creará una nueva sala automáticamente.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    <strong className="text-amber-500">Jerarquía de Sesión:</strong> Para establecer el enlace entre pares, es obligatorio que un <span className="text-slate-100">Moderador</span> esté presente en la sala. En caso de que no exista, las personas quedarán esperando indefinidamente. Si eres el creador de la sala, inicia sesión y automáticamente te convertirás en <span className="text-slate-100">Moderador</span> y los demás podrán conectarse.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
