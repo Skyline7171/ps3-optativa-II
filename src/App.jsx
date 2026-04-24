@@ -5,19 +5,7 @@ const VideoCallApp = () => {
   const [inCall, setInCall] = useState(false);
   const jitsiContainerRef = useRef(null);
 
-  const [error, setError] = useState('');
-
-  const handleJoin = () => {
-    if (roomName.length < 5) {
-      setError('El ID de la sala debe tener al menos 5 caracteres.');
-      return;
-    }
-    
-    setError('');
-    setInCall(true);
-  };
-
-  // Función para generar un ID de sala aleatorio y legible
+  // Función para generar un ID de sala aleatorio
   const handleCreateRoom = () => {
     const prefixes = ['ingenieria', 'clase', 'grupo', 'proyecto', 'reunion'];
     const suffixes = ['optativa', 'redes', 'alpha', 'beta', 'final'];
@@ -45,9 +33,6 @@ const VideoCallApp = () => {
           startWithAudioMuted: true,
           disableDeepLinking: true,
         },
-        interfaceConfigOverwrite: {
-          TOOLBAR_BUTTONS: ['microphone', 'camera', 'desktop', 'hangup', 'chat'],
-        },
       };
 
       // Limpiamos el contenedor por si quedó algún rastro de un intento previo
@@ -63,7 +48,6 @@ const VideoCallApp = () => {
 
       // Cuando el moderador entra, activamos la sala de espera automáticamente
       api.addEventListener('videoConferenceJoined', () => {
-        // Verificamos si somos moderadores (esto depende de cómo Jitsi te asigne)
         // Por defecto en la versión gratuita, el primero en llegar es moderador
         api.executeCommand('toggleLobby', true); 
       });
@@ -98,32 +82,33 @@ const VideoCallApp = () => {
           </div>
           
           <div className="space-y-6">
-            {/* ... dentro del bloque del Lobby, debajo del input ... */}
             <div>
               <label className="text-xs uppercase tracking-widest text-slate-500 font-bold ml-1">ID de la Sala</label>
               <input 
-                type="text" 
+                type="text"
                 placeholder="Escribe el nombre de la sala..." 
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono"
+                className={`w-full bg-slate-900 border ${roomName.length > 0 && roomName.length < 5 ? 'border-amber-500' : 'border-slate-700'} rounded-xl px-4 py-3 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono`}
                 value={roomName}
                 onChange={(e) => {
-                  // Aplicamos la limpieza técnica inmediatamente
                   const sanitizedValue = e.target.value
                     .replace(/\s+/g, '-')
                     .replace(/[^a-zA-Z0-9-_]/g, '');
-                  
                   setRoomName(sanitizedValue);
                 }}
               />
-
+              
+              {roomName.length > 0 && roomName.length < 5 && (
+                <p className="text-[10px] text-amber-500 mt-2 ml-1 animate-pulse">
+                  El ID debe tener al menos 5 caracteres.
+                </p>
+              )}
             </div>
             
-            {/* Botones de Acción */}
             <div className="flex flex-col gap-3">
               <button 
-                disabled={!roomName}
+                disabled={roomName.length < 5}
                 onClick={() => setInCall(true)}
-                className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-900/20"
+                className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 disabled:opacity-100 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-900/20"
               >
                 Unirse a la llamada
               </button>
@@ -137,7 +122,7 @@ const VideoCallApp = () => {
             </div>
           </div>
 
-          {/* --- PANEL DE PROTOCOLO Y ESTADO --- */}
+          {/* --- Explicación del funcionamiento --- */}
           <div className="mt-6 space-y-3">
             <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 shadow-inner">
               {/* Encabezado del aviso */}
@@ -179,7 +164,6 @@ const VideoCallApp = () => {
     );
   }
 
-  // --- VISTA DE LA LLAMADA (Sin cambios) ---
   return (
     <div className="h-screen bg-black flex flex-col">
       <div className="bg-slate-900 p-4 border-b border-slate-800 flex justify-between items-center">
