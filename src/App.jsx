@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 const VideoCallApp = () => {
   const [roomName, setRoomName] = useState("");
+  const [copied, setCopied] = useState(false);
   const [inCall, setInCall] = useState(false);
   const jitsiContainerRef = useRef(null);
 
@@ -16,6 +17,12 @@ const VideoCallApp = () => {
     }-${suffixes[Math.floor(Math.random() * suffixes.length)]}-${randomNum}`;
 
     setRoomName(generatedID);
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(roomName);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   useEffect(() => {
@@ -215,12 +222,68 @@ const VideoCallApp = () => {
   return (
     <div className="h-screen bg-black flex flex-col">
       <div className="bg-slate-900 p-4 border-b border-slate-800 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-blue-400 font-mono text-sm uppercase tracking-wider">
-            Nombre de la sala: {roomName}
-          </span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 border-r border-slate-700 pr-4">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-slate-400 font-mono text-xs uppercase tracking-widest">
+              En Línea
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-blue-400 font-mono text-sm font-bold uppercase tracking-wider">
+              ID: {roomName}
+            </span>
+
+            <button
+              onClick={copyToClipboard}
+              className={`ml-2 p-1.5 rounded-lg transition-all border ${
+                copied
+                  ? "bg-green-500/20 border-green-500/50 text-green-400"
+                  : "bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white"
+              }`}
+              title="Copiar ID de la sala"
+            >
+              {copied ? (
+                <div className="flex items-center gap-1 px-1">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span className="text-[10px] font-bold uppercase">
+                    Copiado
+                  </span>
+                </div>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                  />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
+
         <button
           onClick={() => setInCall(false)}
           className="bg-red-500/10 text-red-500 px-4 py-1.5 rounded-lg text-xs font-bold border border-red-500/30 hover:bg-red-500 hover:text-white transition-all uppercase tracking-tighter"
@@ -228,6 +291,7 @@ const VideoCallApp = () => {
           Finalizar Sesión
         </button>
       </div>
+
       <div ref={jitsiContainerRef} className="flex-grow w-full" />
     </div>
   );
